@@ -1,0 +1,72 @@
+drop database automoto;
+
+create database automoto;
+
+use automoto;
+
+create table proprietario(
+codfiscale varchar(20),
+nome varchar(20) not null,
+cognome varchar(20) not null,
+datanascita date,
+cittaresidenza varchar(10) not null,
+provincia varchar(10) not null,
+primary key(codfiscale));
+
+create table auto(
+targa varchar(6),
+tipo enum('sportiva','berlina','utlitaria'),
+annoimmatricolazione int(4) not null,
+cfproprietario varchar(20) not null references proprietario(codfiscale),
+primary key(targa));
+
+create table moto(
+targa varchar(6),
+tipo enum('custom','caferacer','granturismo'),
+annoimmatricolazione int(4) not null,
+cfproprietario varchar(20) not null references proprietario(codfiscale),
+primary key(targa));
+
+insert into proprietario values
+('dvdvlpcll','davide','volpicella','1997-06-06','bari','bari'),
+('ptrfr', 'pietro', 'fiore', '1940-04-04', 'foggia', 'foggia'),
+('gdprgnn', 'giada', 'piergianni', '2000-01-01', 'milano', 'milano');
+
+insert into moto values
+('m111', 'granturismo', 2015, 'dvdvlpcll'),
+('m222', 'caferacer', 2015, 'dvdvlpcll'),
+('m333', 'custom', 2018, 'gdprgnn'),
+('m444', 'caferacer', 2018, 'gdprgnn'),
+('m555', 'granturismo', 2018, 'gdprgnn');
+
+insert into auto values
+('a111', 'sportiva', 2015, 'dvdvlpcll'),
+('a222', 'berlina', 2000, 'ptrfr'),
+('a333', 'sportiva', 2000, 'ptrfr');
+
+select p.codfiscale, p.nome, p.cognome, p.cittaresidenza
+from proprietario p inner join moto m on p.codfiscale = m.cfproprietario 
+where p.codfiscale not in(select a.cfproprietario from auto a) and m.tipo = 'granturismo' and p.datanascita > '1993-12-31';
+
+select p.nome, p.cognome, p.datanascita
+from proprietario p
+where p.codfiscale in (select p.codfiscale from proprietario p inner join moto m  on p.codfiscale = m.cfproprietario where m.tipo = 'custom') 
+and p.codfiscale in (select p.codfiscale from proprietario p inner join moto m on p.codfiscale = m.cfproprietario where m.tipo = 'caferacer')
+and  p.datanascita > '1983-12-31';
+
+select p.nome, p.cognome, p.cittaresidenza
+from proprietario p join moto m on m.cfproprietario = p.codfiscale
+join auto a on a.cfproprietario = p.codfiscale
+where a.annoimmatricolazione = m.annoimmatricolazione
+and p.provincia = 'bari'
+and a.tipo = 'sportiva'
+and m.tipo = 'caferacer';
+
+alter table auto drop primary key;
+alter table auto add primary key(targa,cfproprietario);
+	
+alter table moto drop primary key;
+alter table moto add primary key(targa,cfproprietario);
+
+
+

@@ -1,0 +1,89 @@
+drop database cineteca;
+
+create database cineteca;
+
+use cineteca;
+
+create table attore(
+codattore varchar(4) not null,
+nome varchar(20) not null,
+cogn varchar(20) not null,
+datanascita date not null,
+primary key(codattore));
+
+create table cantante(
+codcantante varchar(4) not null,
+nome varchar(20) not null,
+cogn varchar(20) not null,
+datanascita date not null,
+primary key(codcantante));
+
+create table film(
+codfilm varchar(4) not null,
+titolo varchar(20) not null,
+regista varchar(40) not null,
+anno int(4) not null,
+primary key(codfilm));
+
+create table filmattore(
+codfilm varchar(4) not null,
+codattore varchar(4) not null,
+primary key(codfilm, codattore),
+foreign key(codfilm) references film(codfilm),
+foreign key(codattore) references attore(codattore));
+
+insert into attore values
+('a001', 'att_nome_1', 'att_cognome1', '2000-01-01'),
+('a002', 'att_nome_2', 'att_cognome2', '2000-01-01'),
+('a003', 'att_nome_3', 'att_cognome3', '2000-01-01'),
+('a004', 'att_nome_4', 'att_cognome4', '2000-01-01'),
+('a005', 'jolly_nome_5', 'jolly_cognome5', '2000-01-01');
+
+insert into cantante values
+('c001', 'ca_nome_1', 'ca_cognome1', '2000-01-01'),
+('c002', 'ca_nome_2', 'ca_cognome2', '2000-01-01'),
+('c003', 'ca_nome_3', 'ca_cognome3', '2000-01-01'),
+('c004', 'ca_nome_4', 'ca_cognome4', '2000-01-01'),
+('c005', 'jolly_nome_5', 'jolly_cognome5', '2000-01-01');
+
+insert into film values
+('f001','tit_1','reg_1','2016'),
+('f002','tit_2','reg_2','2000'),
+('f003','tit_3','reg_3','2000'),
+('f004','tit_4','reg_4','2016'),
+('f005','tit_5','reg_5','2016');
+
+insert into filmattore values
+('f001','a001'),
+('f001','a002'),
+('f001','a003'),
+('f002','a002'),
+('f002','a003'),
+('f003','a003'),
+('f003','a004'),
+('f003','a005'),
+('f004','a004'),
+('f005','a002'),
+('f005','a003');
+
+select f.titolo, f.regista, a.nome, a.cogn, a.datanascita
+from film f
+inner join filmattore fa on fa.codfilm = f.codfilm
+inner join attore a on a.codattore = fa.codattore
+where f.anno = 2000;
+
+select a.nome, a.cogn
+from attore a
+where a.codattore in(select a.codattore
+				from attore a
+				inner join filmattore fa on fa.codattore = a.codattore
+				group by a.codattore
+				having count(*) = 1);
+
+select a.nome, a.cogn
+from attore a
+where (a.nome, a.cogn) in(select c.nome, c.cogn
+					from cantante c);
+
+
+alter table film drop primary key, add primary key(codfilm, regista);

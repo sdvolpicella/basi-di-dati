@@ -1,0 +1,140 @@
+drop database musica;
+
+create database musica;
+
+use musica;
+
+create table cantante(
+idcantante smallint unsigned,
+nome varchar(20) not null,
+cognome varchar(20) not null,
+primary key(idcantante));
+
+create table album(
+codalbum smallint unsigned,
+titoloalbum varchar(20) not null,
+idcantante smallint unsigned,
+annopubblicazione int(4) unsigned not null,
+primary key(codalbum),
+foreign key(idcantante) references cantante(idcantante));
+
+create table canzoni(
+codcanzone smallint unsigned,
+titolocanzone varchar(20) not null,
+codalbum smallint unsigned references album(codalbum),
+primary key(codcanzone));
+
+create table autoricanzone(
+codautore smallint unsigned,
+codcanzone smallint unsigned,
+primary key(codautore, codcanzone),
+foreign key(codautore) references autori(codautore),
+foreign key(codcanzone) references canzoni(codcanzone));
+
+create table autori(
+codautore smallint unsigned,
+nome varchar(20) not null,
+cognome varchar(20) not null,
+primary key(codautore));
+
+insert into cantante values
+(11, 'nome_1', 'cognome_1'),
+(12, 'nome_2', 'cognome_2'),
+(13, 'nome_3', 'cognome_3'),
+(14, 'nome_4', 'cognome_4'),
+(15, 'nome_5', 'cognome_5'),
+(16, 'nome_6', 'cognome_6'),
+(17, 'nome_7', 'cognome_7');
+
+insert into autori values
+(21, 'nome_1', 'cognome_1'),
+(22, 'nome_2', 'cognome_2'),
+(23, 'nome_3', 'cognome_3'),
+(24, 'nome_4', 'cognome_4'),
+(28, 'nome_8', 'cognome_8'),
+(29, 'nome_9', 'cognome_9'),
+(210, 'nome_10', 'cognome_10'),
+(211, 'nome_11', 'cognome_11');
+
+insert into album values
+(31, 'alb_titolo_1', '11', 2000),
+(32, 'alb_titolo_2', '12', 2000),
+(33, 'alb_titolo_3', '13', 2000),
+(34, 'alb_titolo_4', '14', 2000),
+(35, 'alb_titolo_5', '15', 2000),
+(36, 'alb_titolo_6', '16', 2000),
+(37, 'alb_titolo_7', '17', 2000);
+
+insert into canzoni values
+(41, 'can_titolo_1_31', 31),
+(42, 'can_titolo_2_31', 31),
+(43, 'can_titolo_3_31', 31),
+
+(44, 'can_titolo_1_32', 32),
+(45, 'can_titolo_2_32', 32),
+
+(46, 'can_titolo_1_33', 33),
+(47, 'can_titolo_2_33', 33),
+(48, 'can_titolo_3_33', 33),
+
+(49, 'can_titolo_1_34', 34),
+(50, 'can_titolo_2_34', 34),
+
+(51, 'can_titolo_1_35', 35),
+
+(52, 'can_titolo_1_36', 36),
+
+(53, 'can_titolo_1_32', 37),
+(54, 'can_titolo_2_32', 37),
+(55, 'can_titolo_3_32', 37);
+
+insert into autoricanzone values
+(21,41),
+(22,42),
+(23,43),
+(24,44),
+(24,45),
+(24,46),
+(24,47),
+(28,48),
+(29,49),
+(210,50),
+(211,51),
+(21,52),
+(22,53),
+(23,54),
+(24,55);
+
+select canz.titolocanzone, alb.titoloalbum, cant.nome, cant.cognome
+from autori aut
+inner join autoricanzone ac on ac.codautore = aut.codautore
+inner join canzoni canz on canz.codcanzone = ac.codcanzone
+inner join album alb on alb.codalbum = canz.codalbum
+inner join cantante cant on cant.idcantante = alb.idcantante
+where aut.nome = 'nome_1' and aut.cognome = 'cognome_1';
+
+select aut.nome as nomeautore, aut.cognome as cognomeautore
+from autori aut
+inner join autoricanzone ac on ac.codautore = aut.codautore
+inner join canzoni canz on canz.codcanzone = ac.codcanzone
+inner join album alb on alb.codalbum = canz.codalbum
+inner join cantante cant on cant.idcantante = alb.idcantante
+where alb.titoloalbum = 'alb_titolo_4' and cant.nome = 'nome_4' and cant.cognome = 'cognome_4';
+
+
+select cant.nome, cant.cognome, alb.titoloalbum
+from cantante cant
+inner join album alb on alb.idcantante = cant.idcantante
+where (cant.nome, cant.cognome) not in (select aut.nome, aut.cognome from autori aut);
+
+
+
+alter table cantante add genere varchar(20) not null;
+
+alter table canzoni add genere varchar(20) not null;
+
+
+
+
+
+

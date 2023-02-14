@@ -1,0 +1,101 @@
+drop database raccolte;
+
+create database raccolte;
+
+use raccolte;
+
+create table autore(
+codautore varchar(4) not null,
+nome varchar(20) not null,
+cogn varchar(20) not null,
+affiliazione varchar(20),
+primary key(codautore));
+
+create table casaeditrice(
+codcasa varchar(4) not null,
+nome varchar(20),
+ubicazione varchar(20),
+primary key(codcasa));
+
+create table libro(
+codlibro varchar(4) not null,
+titolo varchar(20) not null,
+casaeditrice varchar(4) not null references casaeditrice(codcasa),
+annopubblicazione int(4) not null,
+argomento varchar(20) not null,
+primary key(codlibro));
+
+create table libroautore(
+codlibro varchar(4) not null,
+codautore varchar(4) not null,
+primary key(codlibro, codautore),
+foreign key(codlibro) references libro(codlibro),
+foreign key(codautore) references autore(codautore));
+
+insert into autore values
+('a001', 'a_nome_1', 'a_cogn_1', 'aff_a'),
+('a002', 'a_nome_2', 'a_cogn_2', 'aff_a'),
+('a003', 'a_nome_3', 'a_cogn_3', 'aff_a'),
+('a004', 'a_nome_4', 'a_cogn_4', 'aff_b'),
+('a005', 'a_nome_5', 'a_cogn_5', 'aff_b');
+
+insert into casaeditrice values
+('c001', 'c_nome_1', 'c_ubicazione_1'),
+('c002', 'c_nome_2', 'c_ubicazione_2'),
+('c003', 'c_nome_3', 'c_ubicazione_3'),
+('c004', 'c_nome_4', 'c_ubicazione_4'),
+('c005', 'c_nome_5', 'c_ubicazione_5');
+
+insert into libro values
+('l001', 'titolo_1', 'c001', 2000, 'arg_1'),
+('l002', 'titolo_2', 'c001', 2000, 'arg_2'),
+('l003', 'titolo_3', 'c002', 2000, 'arg_2'),
+('l004', 'titolo_4', 'c003', 2000, 'arg_3'),
+('l005', 'titolo_5', 'c004', 2000, 'arg_5');
+('l006', 'titolo_6', 'c004', 2000, 'arg_6');
+
+
+insert into libroautore values
+('l001','a001'),
+('l001','a002'),
+('l003','a003'),
+('l004','a004'),
+('l005','a005'),
+('l005','a001');
+('l006','a001');
+
+
+select a.nome, a.cogn, l.argomento
+from autore a
+inner join libroautore la on la.codautore = a.codautore
+inner join libro l on l.codlibro = la.codlibro
+where a.codautore in(select a1.codautore
+				from autore a1 inner join libroautore la1 on a1.codautore = la1.codautore
+				inner join libro l1 on l1.codlibro = la1.codlibro
+				where a1.codautore = a.codautore
+				and l.argomento <> l1.argomento)
+order by a.codautore;
+				
+
+
+select a.nome, a.cogn
+from autore a
+inner join libroautore la on la.codautore = a.codautore
+where la.codlibro in(select la2.codlibro
+				from libroautore la2
+				where la.codautore <> la2.codautore
+				and la.codlibro = la2.codlibro)
+and a.codautore not in (select la1.codautore
+                     from libroautore la1 join autore a1 on la1.codautore=a1.codautore
+            where la1.codlibro<>la.codlibro);
+
+
+
+
+select l.titolo, l.annopubblicazione, c.nome, a.nome, a.cogn
+from libro l
+inner join libroautore la on la.codlibro = l.codlibro
+inner join autore a on a.codautore = la.codautore
+inner join casaeditrice c on c.codcasa = l.casaeditrice
+where l.argomento = 'arg_1' and l.annopubblicazione >= '2000';
+

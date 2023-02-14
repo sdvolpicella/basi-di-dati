@@ -1,0 +1,96 @@
+drop database università;
+
+create database università;
+
+use università;
+
+create table studente(
+matr int(4),
+nome varchar(20) not null,
+cognome varchar(20) not null,
+cf varchar(20) not null,
+datanascita date,
+annoimmatricolazione int(4) not null,
+primary key(matr));
+
+create table insegnamento(
+cod int(2),
+nome varchar(40) not null,
+descrizione varchar(100) not null,
+anno enum('I', 'II', 'III'),
+docente int(4) references docente(matrdocente),
+primary key(cod));
+
+create table docente(
+matrdocente int(4),
+nome varchar(20) not null,
+cognome varchar(20) not null,
+cf varchar(20) not null,
+datanascita date,
+primary key(matrdocente));
+
+create table esame(
+codinsegnamento int(2),
+matrstudente int(4),
+data date,
+voto int(2) unsigned not null,
+lode enum('si','no'),
+check(voto <= 30),
+check((lode = 'si' and voto = 30) or (lode = 'no' and voto = 30) or (lode = 'no' and voto < 30)),
+primary key(codinsegnamento, matrstudente, data),
+foreign key(codinsegnamento) references insegnamento(cod),
+foreign key(matrstudente) references studente(matr));
+
+insert into studente values
+(1111, 'davide', 'volpicella', 'dvdvlpcll', '1997-03-06', 2018),
+(2222, 'pietro', 'fiore', 'ptrfr', '1998-03-06', 2019),
+(3333, 'giada', 'piergianni', 'gdprgnn', '2000-01-01', 2019),
+(4444, 'davide', 'fiore', 'dvdfr', '1998-03-06', 2016);
+
+insert into docente values
+(5555, 'pasquale', 'lops', 'psqllps', '1970-07-07'),
+(6666, 'claudia', 'damato', 'clddmt', '1975-05-05'),
+(7777, 'teresa', 'roselli', 'trsrsll', '1400-04-04'),
+(8888, 'pier', 'basile', 'prbsl', '1985-05-05');
+
+insert into insegnamento values
+(1, 'laboratorio di informatica', 'descrizione laboratorio', 'I', 7777),
+(2, 'basi di dati', 'descrizione basi', 'II', 6666),
+(3, 'videogiochi', 'descrizione videogiochi', 'III', 8888),
+(4, 'linguaggi', 'descrizione linguaggi', 'I', 5555),
+(5, 'laboratorio avanzato', 'descrizione lab avanzato', 'I', 8888),
+(6, 'metodi ritrovamento', 'descrizione metodi', 'III', 5555);
+
+insert into esame values
+(1, 1111, '21-05-05', 18, 'no'),
+(2, 1111, '21-06-05', 19, 'no'),
+(3, 1111, '21-07-05', 20, 'no'),
+(4, 1111, '21-08-05', 24, 'no'),
+(5, 1111, '22-09-05', 23, 'no'),
+(6, 1111, '22-05-05', 18, 'no'),
+(1, 2222, '21-05-05', 23, 'no'),
+(2, 2222, '21-07-08', 28, 'no'),
+(5, 3333, '21-07-08', 28, 'no');
+
+select s.nome, s.cognome, s.matr, i.cod, i.nome, e.data, e.voto
+from studente s inner join esame e on s.matr = e.matrstudente
+inner join insegnamento i on i.cod = e.codinsegnamento
+where s.matr in (select s.matr from studente s inner join esame e on s.matr = e.matrstudente
+                 inner join insegnamento i on i.cod = e.codinsegnamento
+                 where i.nome = 'laboratorio di informatica' and e.voto >= 18);
+
+
+select s.matr, s.nome, s.cognome, count(*) as numesami, avg(e.voto) as media
+from studente s
+inner join esame e on s.matr = e.matrstudente
+group by s.matr
+having count(*) >= 6;
+
+select s.matr, s.nome, s.cognome, s.datanascita, s.annoimmatricolazione
+from studente s
+where s.matr not in(select e.matrstudente from esame e)
+and s.annoimmatricolazione < 2023;
+
+alter table esame add check(voto >= 18 and voto <= 30);
+
+alter table insegnamento drop primary key, add primary key(cod, docente);

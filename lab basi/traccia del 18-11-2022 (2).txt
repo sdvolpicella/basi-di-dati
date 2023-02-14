@@ -1,0 +1,101 @@
+drop database banca;
+
+create database banca;
+
+use banca;
+
+create table correntista(
+codfiscale varchar(20) not null,
+cogn varchar(20) not null,
+nome varchar(20) not null,
+datanascita date,
+primary key(codfiscale));
+
+create table dipendente(
+codfiscale varchar(20) not null,
+nome varchar(20) not null,
+cogn varchar(20) not null,
+datanascita date not null,
+sedeassunzione varchar(20) not null,
+primary key(codfiscale));
+
+create table filiale(
+cod int(4) not null,
+nome varchar(20),
+citta varchar(20),
+direttore varchar(20) not null references dipendente(codfiscale),
+primary key(cod));
+
+create table dipendentefiliale(
+dipendente varchar(20) not null,
+filiale int(4) not null,
+primary key(dipendente, filiale),
+foreign key(dipendente) references dipendente(codfiscale),
+foreign key(filiale) references filiale(cod));
+
+
+create table contocorrente(
+numcc varchar(12),
+correntista varchar(20) not null,
+filiale int(4) not null,
+dataaperturaconto date not null,
+primary key(numcc),
+foreign key(correntista) references correntista(codfiscale),
+foreign key(filiale) references filiale(cod));
+
+insert into correntista values
+('cf_01', 'cognome_1', 'nome_1', '1980-01-01'),
+('cf_02', 'cognome_2', 'nome_2', '1980-01-01'),
+('cf_03', 'cognome_3', 'nome_3', '1980-01-01'),
+('cf_04', 'cognome_4', 'nome_4', '1980-01-01');
+
+insert into dipendente values
+('cf_01', 'cognome_1', 'nome_1', '1980-01-01', 'sede_1'),
+('cf_02', 'cognome_2', 'nome_2', '1980-01-01', 'sede_2'),
+('cf_05', 'cognome_5', 'nome_5', '1980-01-01', 'sede_3'),
+('cf_06', 'cognome_6', 'nome_6', '1980-01-01', 'sede_3');
+
+insert into filiale values
+(1111, 'filiale_1', 'citta_1', 'cf_01'),
+(2222, 'filiale_1', 'citta_2', 'cf_02'),
+(3333, 'filiale_1', 'citta_1', 'cf_05');
+
+insert into dipendentefiliale values
+('cf_01', 1111),
+('cf_02', 2222),
+('cf_05', 3333),
+('cf_05', 1111),
+('cf_06', 1111);
+
+insert into contocorrente values
+('cc1', 'cf_01', '1111', '2022-01-01'),
+('cc2', 'cf_02', '2222', '2000-01-01'),
+('cc3', 'cf_03', '3333', '2000-01-01'),
+('cc4', 'cf_04', '1111', '2000-01-01');
+
+select distinct d.nome, d.cogn, d.sedeassunzione, f.nome, f.citta
+from dipendente d
+inner join dipendentefiliale df on df.dipendente = d.codfiscale
+inner join filiale f on f.cod = df.filiale
+where d.codfiscale in (select d2.codfiscale
+				from dipendente d2
+				inner join dipendentefiliale df2 on df2.dipendente = d2.codfiscale
+				inner join filiale f2 on f2.cod = df2.filiale
+				where d.codfiscale = d2.codfiscale
+				and f.citta = f2.citta
+				and f.cod <> f2.cod);
+
+select c.nome, c.cogn, c.datanascita
+from correntista c
+inner join contocorrente cc on cc.correntista = c.codfiscale
+where c.datanascita < '1983-01-01'
+and cc.dataaperturaconto >= '2022-01-01'
+and cc.dataaperturaconto <= '2022-12-31';
+
+select c.cogn, c.nome, d.*, f.*
+from correntista c
+inner join contocorrente cc on cc.correntista = c.codfiscale
+inner join filiale f on f.cod = cc.filiale
+inner join dipendentefiliale df on df.filiale = f.cod
+inner join dipendente d on d.codfiscale = df.dipendente
+where c.cogn = d.nome;

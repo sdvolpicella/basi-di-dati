@@ -1,0 +1,87 @@
+drop database cineteca;
+
+create database cineteca;
+
+use cineteca;
+
+create table attore(
+codattore smallint unsigned,
+nome varchar(20) not null,
+cognome varchar(20) not null,
+datanascita date,
+primary key(codattore));
+
+create table cantante(
+codcantante smallint unsigned,
+nome varchar(20) not null,
+cognome varchar(20) not null,
+datanascita date,
+primary key(codcantante));
+
+create table film(
+cod smallint unsigned,
+titolo varchar(20) not null,
+regista varchar(40) not null,
+anno int(4) not null,
+primary key(cod));
+
+create table filmattore(
+codfilm smallint unsigned,
+codattore smallint unsigned,
+primary key(codfilm, codattore),
+foreign key(codfilm) references film(cod),
+foreign key(codattore) references attore(codattore));
+
+insert into attore values
+(11, 'att_1_nome', 'att_1_cognome', '1990-01-01'),
+(12, 'att_2_nome', 'att_2_cognome', '1990-01-01'),
+(13, 'att_3_nome', 'att_3_cognome', '1990-01-01'),
+(14, 'att_4_nome', 'att_4_cognome', '1990-01-01'),
+(15, 'jolly_nome', 'jolly_cognome', '1990-01-01');
+
+insert into cantante values
+(21, 'can_1_nome', 'can_1_cognome', '1990-01-01'),
+(22, 'can_2_nome', 'can_2_cognome', '1990-01-01'),
+(23, 'can_3_nome', 'can_3_cognome', '1990-01-01'),
+(24, 'can_4_nome', 'can_4_cognome', '1990-01-01'),
+(25, 'jolly_nome', 'jolly_cognome', '1990-01-01');
+
+insert into film values
+(31, 'titolo_1', 'regista_1', 2000),
+(32, 'titolo_2', 'regista_2', 2000),
+(33, 'titolo_3', 'regista_3', 2001),
+(34, 'titolo_4', 'regista_4', 2002),
+(35, 'titolo_5', 'regista_5', 2003);
+
+insert into filmattore values
+(31,11),
+(31,12),
+(32,12),
+(32,13),
+(32,14),
+(33,15),
+(33,14),
+(34,12),
+(34,13),
+(34,14),
+(35,14);
+
+select f.titolo, f.regista, a.nome, a.cognome, a.datanascita
+from film f
+inner join filmattore fa on f.cod = fa.codfilm
+inner join attore a on fa.codattore = a.codattore
+where f.anno = '2000';
+
+select a.nome, a.cognome
+from attore a
+inner join filmattore fa on fa.codattore = a.codattore
+group by a.nome, a.cognome
+having count(*) = 1;
+
+select a.nome, a.cognome
+from attore a
+where (a.nome, a.cognome) in (select c.nome, c.cognome from cantante c);
+
+alter table film drop primary key, add primary key(cod,regista);
+
+

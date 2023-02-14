@@ -1,0 +1,99 @@
+drop database opere;
+
+create database opere;
+
+use opere;
+
+create table dipinto(
+coddipinto varchar(4) not null,
+titolodipinto varchar(40) not null,
+annorealizzazione int(4) not null,
+autore varchar(4) not null references artista(codartista),
+nomesala varchar(40) not null,
+primary key(coddipinto));
+
+create table scatto(
+cod varchar(4) not null,
+titolo varchar(40) not null,
+anno int(4) not null,
+autore varchar(40) not null references artista(codartista),
+nomesala varchar(40) not null,
+primary key(cod));
+
+create table artista(
+codartista varchar(4) not null,
+nome varchar(20) not null,
+cognome varchar(20) not null,
+datanascita date not null,
+datamorte date,
+primary key(codartista));
+
+insert into artista values
+('a001', 'nome_artista_1', 'cognome_artista_1', '1960-01-01', '1999-01-01'),
+('a002', 'nome_artista_2', 'cognome_artista_2', '1960-01-01', null),
+('a003', 'nome_artista_3', 'cognome_artista_3', '1960-01-01', '1999-01-01'),
+('a004', 'nome_artista_4', 'cognome_artista_4', '1960-01-01', '1999-01-01'),
+('a005', 'nome_artista_5', 'cognome_artista_5', '1960-01-01', null);
+
+insert into dipinto values
+('d001', 'titolo_dip_1', 1980, 'a001', 'sala_1'),
+('d002', 'titolo_dip_2', 1980, 'a002', 'sala_1'),
+('d003', 'titolo_dip_3', 1980, 'a003', 'sala_2'),
+('d004', 'titolo_dip_4', 1980, 'a004', 'sala_2'),
+('d005', 'titolo_dip_5', 1980, 'a005', 'sala_2');
+
+insert into scatto values
+('s001', 'titolo_sc_1', 1980, 'a002', 'sala_2'),
+('s002', 'titolo_sc_2', 1980, 'a002', 'sala_2'),
+('s003', 'titolo_sc_3', 1980, 'a003', 'sala_1'),
+('s004', 'titolo_sc_4', 1980, 'a004', 'sala_1'),
+('s005', 'titolo_sc_5', 1980, 'a005', 'sala_1');
+
+select distinct d.titolodipinto as titoloopera, d.annorealizzazione as annorealizzazione, a.nome as nomeautore, a.cognome as cognomeautore
+from dipinto d inner join artista a on a.codartista = d.autore
+where d.nomesala = 'sala_1'
+union
+select distinct s.titolo as titoloopera, s.anno as annorealizzazione, a.nome as nomeautore, a.cognome as cognomeautore
+from scatto s inner join artista a on a.codartista = s.autore
+where s.nomesala = 'sala_1';
+
+
+select a.nome as autore, d.titolodipinto as titoloOpera, d.annorealizzazione as anno
+from artista a
+inner join dipinto d on d.autore = a.codartista
+where a.codartista in (select d.autore from dipinto d group by d.autore having count(*) = 1)
+and a.codartista not in(select s.autore from scatto s group by s.autore having count(*) = 1)
+and a.datamorte is not null
+union
+select a.nome as autore, s.titolo as titoloOpera, s.anno as anno
+from artista a
+inner join scatto s on s.autore = a.codartista
+where a.codartista in (select s.autore from scatto s group by s.autore having count(*) = 1)
+and a.codartista not in(select d.autore from dipinto d group by d.autore having count(*) = 1)
+and a.datamorte is not null;
+				
+
+
+select a.nome, a.cognome, s.titolo, s.anno, s.nomesala, d.titolodipinto, d.annorealizzazione, d.nomesala
+from artista a
+inner join scatto s on s.autore = a.codartista
+inner join dipinto d on d.autore = a.codartista
+where a.datamorte is null
+and a.codartista in (select s.autore from scatto s group by s.autore having count(*) = 1)
+and a.codartista in (select d.autore from dipinto d group by d.autore having count(*) = 1);
+
+create table museo(
+codmuseo varchar(4) not null,
+citta varchar(20) not null,
+nomemuseo varchar(20) not null,
+primary key(codmuseo));
+
+alter table scatto add museo varchar(4) not null references museo(codmuseo);
+
+alter table dipinto add museo varchar(4) not null references museo(codmuseo);
+
+
+
+
+
+

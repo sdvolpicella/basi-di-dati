@@ -1,0 +1,82 @@
+drop database banca;
+
+create database banca;
+
+use banca;
+
+create table correntisti(
+cf varchar(10) not null,
+cognome varchar(20) not null,
+nome varchar(20) not null,
+datanascita date not null,
+tipocontratto enum('tempodeterminato', 'tempoindeterminato'),
+cittaresidenza varchar(10) not null,
+primary key(cf));
+
+create table dipendente(
+cf varchar(10) not null,
+nome varchar(20) not null,
+cognome varchar(20) not null,
+datanascita date not null,
+qualifica enum('impiegato','quadro','dirigente'),
+primary key(cf));
+
+create table contocorrente(
+numcc int(6) unsigned not null,
+cfcorrentista varchar(10) not null,
+saldo int(10) not null,
+primary key(numcc),
+foreign key(cfcorrentista) references correntisti(cf));
+
+insert into correntisti values
+('c_01', 'c_nome_1', 'c_cogn_1', '1980-01-01', 'tempodeterminato', 'bari'),
+('c_02', 'c_nome_2', 'c_cogn_2', '1980-01-01', 'tempodeterminato', 'bari'),
+('c_03', 'c_nome_3', 'c_cogn_3', '1980-01-01', 'tempoindeterminato', 'citta_1'),
+('c_04', 'c_nome_4', 'c_cogn_4', '1980-01-01', 'tempoindeterminato', 'citta_1');
+('c_05', 'c_nome_5', 'c_cogn_5', '1980-01-01', 'tempoindeterminato', 'citta_1');
+
+insert into dipendente values
+('d_01', 'd_nome_1', 'd_cogn_1', '1980-01-01', 'impiegato'),
+('d_02', 'd_nome_2', 'd_cogn_2', '1980-01-01', 'quadro'),
+('d_03', 'd_nome_3', 'd_cogn_3', '1980-01-01', 'dirigente'),
+('c_04', 'c_nome_4', 'c_cogn_4', '1980-01-01', 'dirigente');
+('c_05', 'c_nome_5', 'c_cogn_5', '1980-01-01', 'dirigente');
+
+
+insert into contocorrente values
+('111', 'c_01', '100100'),
+('222', 'c_02', '500'),
+('333', 'c_03', '6000'),
+('444', 'c_04', '7000'),
+('555', 'c_04', '8000');
+
+
+
+select c.nome, c.cognome, c.cf
+from correntisti c
+inner join contocorrente cc on cc.cfcorrentista = c.cf
+where c.tipocontratto = 'tempodeterminato'
+and cc.saldo > 100000
+and c.cittaresidenza = 'bari';
+
+select d.nome, d.cognome, d.cf, cc.numcc
+from dipendente d
+inner join correntisti c on c.cf = d.cf
+inner join contocorrente cc on cc.cfcorrentista = c.cf
+where c.tipocontratto = 'tempoindeterminato'
+and cc.cfcorrentista in (select cc2.cfcorrentista
+					from contocorrente cc2
+					where cc2.cfcorrentista = cc.cfcorrentista
+					and cc2.numcc <> cc.numcc); 
+
+
+
+select d.nome, d.cognome, d.cf
+from dipendente d
+where d.qualifica = 'dirigente'
+and d.cf not in (select cc.cfcorrentista
+			from contocorrente cc);
+
+
+alter table contocorrente add porcodio smallint;
+

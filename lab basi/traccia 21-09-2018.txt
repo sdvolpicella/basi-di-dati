@@ -1,0 +1,82 @@
+drop database banca;
+
+create database banca;
+
+use banca;
+
+create table correntisti(
+cf varchar(4) not null,
+cogn varchar(20) not null,
+nome varchar(20) not null,
+datanascita date not null,
+indirizzo varchar(40) not null,
+primary key(cf));
+
+create table dipendente(
+cf varchar(4) not null,
+nome varchar(20) not null,
+cogn varchar(20) not null,
+datanascita date not null,
+primary key(cf));
+
+create table filiale(
+cod varchar(4) not null,
+nomefiliale varchar(10) not null,
+citta varchar(10) not null,
+cfdirettore varchar(4) not null references dipendente(cf),
+primary key(cod));
+
+create table contocorrente(
+numcc int(4) not null,
+codfiliale varchar(4) not null,
+cfcorrentista varchar(4) not null,
+primary key(numcc),
+foreign key(codfiliale) references filiale(cod),
+foreign key(cfcorrentista) references correntisti(cf));
+
+insert into correntisti values
+('01', 'cogn_1', 'nome_1', '1980-01-01', 'ind_1'),
+('02', 'cogn_2', 'nome_2', '1980-01-01', 'ind_2'),
+('03', 'cogn_3', 'nome_3', '1980-01-01', 'ind_3'),
+('04', 'cogn_4', 'nome_4', '1980-01-01', 'ind_4');
+
+insert into dipendente values
+('01', 'nome_1', 'cogn_1', '1980-01-01'),
+('02', 'nome_2', 'cogn_2', '1980-01-01'),
+('05', 'nome_5', 'cogn_5', '1980-01-01'),
+('06', 'nome_6', 'cogn_6', '1980-01-01');
+
+
+insert into filiale values
+('f111', 'fil_1', 'citta_1', '01'),
+('f222', 'fil_2', 'citta_2', '01'),
+('f333', 'fil_3', 'citta_2', '02'),
+('f444', 'fil_4', 'monza', '05');
+
+
+insert into contocorrente values
+(1111, 'f111', '02'),
+(2222, 'f222', '03'),
+(3333, 'f333', '04');
+
+select d.nome, d.cogn, d.cf
+from dipendente d
+inner join filiale f on f.cfdirettore = d.cf
+where d.cf in (select d2.cf
+			from dipendente d2
+			inner join filiale f2 on d2.cf = f2.cfdirettore
+			where f.cfdirettore = f2.cfdirettore
+			and f.cod <> f2.cod);
+
+select d.nome, d.cogn, d.cf
+from dipendente d
+where d.cf not in(select cc.cfcorrentista
+			from contocorrente cc);
+
+select f.nomefiliale, d.nome, count(cc.numcc)
+from filiale f
+inner join dipendente d on d.cf = f.cfdirettore
+inner join contocorrente cc on cc.codfiliale = f.cod
+where f.citta = 'monza'
+group by f.nomefiliale, d.nome;
+

@@ -1,0 +1,105 @@
+drop database automoto;
+
+create database automoto;
+
+use automoto;
+
+create table auto(
+targa varchar(6) not null,
+tipo enum('sportiva','berlina','utilitaria'),
+primary key(targa));
+
+create table moto(
+targa varchar(6) not null,
+tipo enum('custom', 'caferacer', 'granturismo'),
+primary key(targa));
+
+create table proprietario(
+codfiscale varchar(10) not null,
+nome varchar(20) not null,
+cognome varchar(20) not null,
+cittaresidenza varchar(20) not null,
+primary key(codfiscale));
+
+create table autoproprietario(
+targa varchar(6) not null,
+codfiscale varchar(10) not null,
+primary key(targa, codfiscale),
+foreign key(targa) references auto(targa),
+foreign key(codfiscale) references proprietario(codfiscale));
+
+create table motoproprietario(
+targa varchar(6) not null,
+codfiscale varchar(10) not null,
+primary key(targa, codfiscale),
+foreign key(targa) references moto(targa),
+foreign key(codfiscale) references proprietario(codfiscale));
+
+
+insert into auto values
+('a_01', 'sportiva'),
+('a_02', 'berlina'),
+('a_03', 'utilitaria'),
+('a_04', 'sportiva');
+
+insert into moto values
+('m_01', 'custom'),
+('m_02', 'caferacer'),
+('m_03', 'granturismo'),
+('m_04', 'custom');
+
+insert into proprietario values
+('cf_01', 'nome_1', 'cogn_1', 'bari'),
+('cf_02', 'nome_2', 'cogn_2', 'citta_1'),
+('cf_03', 'nome_3', 'cogn_3', 'citta_2'),
+('cf_04', 'nome_4', 'cogn_4', 'bari');
+
+insert into motoproprietario values
+('m_04', 'cf_01'),
+('m_02', 'cf_01'),
+('m_01', 'cf_02'),
+('m_03', 'cf_03'),
+('m_04', 'cf_04'),
+('m_02', 'cf_04');
+
+insert into autoproprietario values
+('a_04', 'cf_02'),
+('a_02', 'cf_02'),
+('a_01', 'cf_03'),
+('a_03', 'cf_04');
+
+select p.*
+from proprietario p
+inner join motoproprietario mp on mp.codfiscale = p.codfiscale
+inner join moto m on m.targa = mp.targa
+where m.tipo = 'custom'
+and p.codfiscale not in(select ap.codfiscale from autoproprietario ap);
+
+select p.nome, p.cognome, p.cittaresidenza
+from proprietario p
+where p.cittaresidenza = 'bari'
+and p.codfiscale in(select p.codfiscale
+				from proprietario p
+				inner join motoproprietario mp on mp.codfiscale = p.codfiscale
+				inner join moto m on m.targa = mp.targa
+				and m.tipo = 'custom')
+and p.codfiscale in(select p.codfiscale
+				from proprietario p
+				inner join motoproprietario mp on mp.codfiscale = p.codfiscale
+				inner join moto m on m.targa = mp.targa
+				and m.tipo = 'caferacer');
+
+select p.nome, p.cognome, p.codfiscale
+from proprietario p
+where p.cittaresidenza = 'bari'
+and p.codfiscale in(select mp.codfiscale
+				from motoproprietario mp
+				group by mp.codfiscale
+				having count(*) > 1);
+
+
+alter table motoproprietario drop primary key, add primary key(targa);
+
+
+
+

@@ -1,0 +1,92 @@
+drop database cineteca;
+
+create database cineteca;
+
+use cineteca;
+
+create table attore(
+codattore smallint unsigned,
+nome varchar(20) not null,
+cognome varchar(20) not null,
+datanascita date,
+primary key(codattore));
+
+create table regista(
+codregista smallint unsigned,
+nome varchar(20) not null,
+cognome varchar(20) not null,
+datanascita date,
+primary key(codregista));
+
+create table film(
+cod smallint unsigned,
+titolo varchar(20) not null,
+nomeproduttore varchar(20) not null,
+regista smallint unsigned references regista(codregista),
+primary key(cod));
+
+create table filmattore(
+codfilm smallint unsigned,
+codattore smallint unsigned,
+primary key(codfilm, codattore),
+foreign key(codfilm) references film(cod),
+foreign key(codattore) references attore(codattore));
+
+insert into attore values
+(11, 'att_1_nome', 'att_1_cognome', '1980-01-01'),
+(12, 'att_2_nome', 'att_2_cognome', '1980-01-01'),
+(13, 'att_3_nome', 'att_3_cognome', '1980-01-01'),
+(14, 'att_4_nome', 'att_4_cognome', '1980-01-01'),
+(15, 'att_5_nome', 'att_5_cognome', '1980-01-01');
+
+insert into regista values
+(21, 'reg_1_nome', 'reg_1_cognome', '1980-01-01'),
+(22, 'reg_2_nome', 'reg_2_cognome', '1980-01-01'),
+(23, 'reg_3_nome', 'reg_3_cognome', '1980-01-01'),
+(24, 'reg_4_nome', 'reg_4_cognome', '1980-01-01'),
+(25, 'reg_5_nome', 'reg_5_cognome', '1980-01-01');
+
+insert into film values
+(31, 'titolo_1', 'produttore_1', '21'),
+(32, 'titolo_2', 'produttore_2', '21'),
+(33, 'titolo_3', 'produttore_2', '22'),
+(34, 'titolo_4', 'produttore_1', '23'),
+(35, 'titolo_5', 'produttore_3', '24');
+
+insert into filmattore values
+(31,11),
+(31,12),
+(32,11),
+(32,12),
+(32,13),
+(33,14),
+(33,15),
+(34,11),
+(34,15),
+(35,11),
+(35,13),
+(35,15);
+
+select f.titolo, a.nome, a.cognome
+from film f
+inner join filmattore fa on f.cod = fa.codfilm
+inner join attore a on a.codattore = fa.codattore
+where nomeproduttore = 'produttore_2';
+
+
+select r.nome, r.cognome
+from regista r
+inner join film f on f.regista = r.codregista
+group by r.nome, r.cognome
+having count(*) = 1;
+
+select f.titolo, a.nome, a.cognome
+from film f
+inner join regista r on f.regista = r.codregista
+inner join filmattore fa on f.cod = fa.codfilm
+inner join attore a on a.codattore = fa.codattore
+where r.nome = 'reg_1_nome' and r.cognome = 'reg_1_cognome';
+
+alter table film drop primary key, add primary key(cod, nomeproduttore);
+
+

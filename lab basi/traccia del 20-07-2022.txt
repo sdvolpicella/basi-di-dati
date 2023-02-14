@@ -1,0 +1,101 @@
+drop database pubblicazioni;
+
+create database pubblicazioni;
+
+use pubblicazioni;
+
+create table autore(
+codautore smallint unsigned not null,
+nome varchar(20) not null,
+cogn varchar(20) not null,
+affiliazione varchar(40) not null,
+primary key(codautore));
+
+create table rivista(
+codrivista smallint unsigned not null,
+nomerivista varchar(20) not null,
+casaeditrice varchar(20) not null,
+primary key(codrivista));
+
+create table articolo(
+codarticolo smallint unsigned not null,
+titolo varchar(20),
+rivista smallint unsigned not null references rivista(codrivista),
+numeroinrivista smallint unsigned unique auto_increment,
+annopubblicazione int(4),
+primary key(codarticolo));
+
+create table articoloautore(
+codarticolo smallint unsigned not null,
+codautore smallint unsigned not null,
+primary key(codarticolo, codautore),
+foreign key(codarticolo) references articolo(codarticolo),
+foreign key(codautore) references autore(codautore));
+
+insert into autore values
+(11, 'aut_nome_1', 'aut_cognome_1', 'università degli studi di bari'),
+(12, 'aut_nome_2', 'aut_cognome_2', 'università degli studi di modena'),
+(13, 'aut_nome_3', 'aut_cognome_3', 'università degli studi di milano'),
+(14, 'aut_nome_4', 'aut_cognome_4', 'università degli studi di barletta');
+
+insert into rivista values
+(21, 'riv_nome_1', 'casa_ed_1'),
+(22, 'riv_nome_1', 'casa_ed_1'),
+(23, 'riv_nome_1', 'casa_ed_1'),
+(24, 'riv_nome_1', 'casa_ed_1');
+
+insert into articolo values
+(31, 'knowledge graphs', 21, null, 2016),
+(32, 'titolo_2', 22, null, 2016),
+(33, 'titolo_3', 23, null, 2010),
+(34, 'knowledge graphs', 24, null, 2010),
+(35, 'titolo_5', 21, null, 2019),
+(36, 'titolo_6', 22, null, 2016);
+
+
+insert into articoloautore values
+(31,11),
+(32,12),
+(33,13),
+(34,14),
+(35,11),
+(36,11);
+
+
+select a.nome, a.cogn, a.affiliazione
+from autore a
+inner join articoloautore aa on aa.codautore = a.codautore
+inner join articolo art on art.codarticolo = aa.codarticolo
+where art.annopubblicazione >= 2015 and art.annopubblicazione <= 2020
+and a.codautore in (select aa.codautore from articoloautore aa group by aa.codautore having count(*) <= 2);
+
+
+select a.nome, a.cogn, a.affiliazione, art.*, r.nomerivista, r.casaeditrice
+from autore a
+inner join articoloautore aa on aa.codautore = a.codautore
+inner join articolo art on art.codarticolo = aa.codarticolo
+inner join rivista r on r.codrivista = art.rivista
+where art.titolo = 'knowledge graphs';
+
+select a.nome, a.cogn, art.*
+from autore a
+inner join articoloautore aa on aa.codautore = a.codautore
+inner join articolo art on art.codarticolo = aa.codarticolo
+where a.affiliazione = 'università degli studi di bari'
+and art.annopubblicazione  >= 2018
+order by art.annopubblicazione desc;
+
+alter table autore drop primary key, add primary key(codautore, affiliazione);
+
+
+
+select a.nome, a.cogn, a.affiliazione, art.*, r.nomerivista, r.casaeditrice
+from autore a
+inner join articoloautore aa on aa.codautore = a.codautore
+inner join articolo art on art.codarticolo = aa.codarticolo
+inner join rivista r on art.rivista = r.codrivista
+where art.titolo like '%knowledg%';
+ 
+ 
+
+
